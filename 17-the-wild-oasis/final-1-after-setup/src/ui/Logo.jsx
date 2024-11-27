@@ -10,9 +10,11 @@ const Img = styled.img`
 `;
 
 function Logo() {
+  const src = "logo-light.png";
+
   return (
     <StyledLogo>
-      <Img src="/logo-light.png" alt="Logo" />
+      <Img src={src} alt="Logo" />
     </StyledLogo>
   );
 }
