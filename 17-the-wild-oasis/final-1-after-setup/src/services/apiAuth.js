@@ -4,11 +4,11 @@ import { verify } from "jsonwebtoken-esm";
 
 import { getUserById } from "../db/statement.js";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = "http://localhost:3001/auth";
 
 // Load environment variables from .env file
 
-const jwtSecretKey = import.meta.env.VITE_JWT_SECRET;
+const jwtSecretKey = "DQVFr+CqpnMxt0b4xbHEcCyxU0OSUV1v2mGgLP2/2Dk=";
 
 // Sign Up Function
 export const signup = async (email, password) => {
@@ -51,6 +51,7 @@ export const login = async (email, password) => {
     });
 
     const data = await response.json();
+    console.log("Response data:", data);
 
     if (response.ok) {
       // Save token to localStorage
