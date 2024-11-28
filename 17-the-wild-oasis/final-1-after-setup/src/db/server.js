@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import { sign, verify } from "jsonwebtoken-esm";
+import dotenv from "dotenv";
 import bcrypt from "bcryptjs"; // To hash passwords
 import { insertUser, getUser } from "./statement.js";
 import { signup, login } from "../services/apiAuth.js"; // Import authentication logic
@@ -9,6 +11,9 @@ const PORT = 3001;
 
 app.use(cors());
 app.use(express.json());
+
+dotenv.config();
+const jwtSecretKey = process.env.JWT_SECRET;
 
 // Create New User
 app.post("/auth/signup", async (req, res) => {
@@ -62,11 +67,13 @@ app.post("/auth/login", async (req, res) => {
     return res.status(400).json({ error: "Invalid credentials" });
   }
 
-  // Successfully authenticated
-  res.status(200).json({
-    message: "Login successful",
-    user: { email: user.email },
+  // Sign a JWT token
+  const token = sign({ id: user.id, email: user.email }, jwtSecretKey, {
+    expiresIn: "1h",
   });
+
+  // Send the token and user info back to the client
+  res.status(200).json({ token, user: { email: user.email, id: user.id } });
 });
 
 // Start the server

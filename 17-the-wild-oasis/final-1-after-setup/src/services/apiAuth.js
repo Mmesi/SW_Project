@@ -1,7 +1,14 @@
 // auth.js
 import axios from "axios";
+import { verify } from "jsonwebtoken-esm";
 
-const API_URL = "http://localhost:3001/auth";
+import { getUserById } from "../db/statement.js";
+
+const API_URL = import.meta.env.VITE_API_URL;
+
+// Load environment variables from .env file
+
+const jwtSecretKey = import.meta.env.VITE_JWT_SECRET;
 
 // Sign Up Function
 export const signup = async (email, password) => {
@@ -44,9 +51,13 @@ export const login = async (email, password) => {
     });
 
     const data = await response.json();
-    console.log("DATA", data);
+
     if (response.ok) {
-      return data;
+      // Save token to localStorage
+      localStorage.setItem("authToken", data.token);
+
+      console.log("Login successful. Token saved:", data.token);
+      return data.user;
     } else {
       console.error("Login failed:", data.error);
     }
@@ -68,7 +79,25 @@ export const updateCurrentUser = (newUser) => {
   return newUser;
 };
 
-export const getCurrentUser = () => {
-  const user = localStorage.getItem("user");
-  return user ? JSON.parse(user) : null;
-};
+export async function getCurrentUser() {
+  // Retrieve the token from localStorage
+  const token = localStorage.getItem("authToken");
+  if (!token) return null; // No token available
+
+  try {
+    // Verify the token using the secret key
+    const decoded = verify(token, jwtSecretKey);
+
+    // Extract the user ID from the decoded token
+    const userId = decoded.id;
+
+    // Fetch the user from the database
+    const user = await getUserById(userId);
+    if (!user) throw new Error("User not found");
+
+    return user; // Return the user details
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    return null; // Return null if token verification fails
+  }
+}

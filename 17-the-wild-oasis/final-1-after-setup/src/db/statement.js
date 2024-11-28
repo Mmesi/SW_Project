@@ -1,102 +1,125 @@
-import Database from "better-sqlite3";
+import fs from "fs"; // File system module
 
-const db = new Database("database.db");
+import initSqlJs from "sql.js"; // SQL.js library
 
-const createTable = () => {
-  // Users table
-  const usersTable = `
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT UNIQUE,
-      password TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `;
-  db.prepare(usersTable).run();
+// Load the SQLite database from a file or create a new one if the file doesn't exist
+const loadDatabase = async (filepath) => {
+  try {
+    // Load the SQL.js module
+    const SQL = await initSqlJs({
+      locateFile: (filename) => `../../node_modules/sql.js/dist/${filename}`,
+    });
 
-  // Cabins table
-  const cabinsTable = `
-    CREATE TABLE IF NOT EXISTS cabins (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      description TEXT,
-      capacity INTEGER NOT NULL,
-      price_per_night DECIMAL(10, 2) NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `;
-  db.prepare(cabinsTable).run();
-
-  // Bookings table (with foreign keys to users and cabins)
-  const bookingsTable = `
-    CREATE TABLE IF NOT EXISTS bookings (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      cabin_id INTEGER NOT NULL,
-      start_date DATE NOT NULL,
-      end_date DATE NOT NULL,
-      num_nights INTEGER NOT NULL,
-      num_guests INTEGER NOT NULL,
-      total_price DECIMAL(10, 2) NOT NULL,
-      status TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (cabin_id) REFERENCES cabins(id) ON DELETE CASCADE
-    )
-  `;
-  db.prepare(bookingsTable).run();
-
-  // Settings table (used for application settings like configuration, etc.)
-  const settingsTable = `
-    CREATE TABLE IF NOT EXISTS settings (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      key TEXT UNIQUE NOT NULL,
-      value TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `;
-  db.prepare(settingsTable).run();
-
-  console.log("All tables are created successfully.");
+    // Check if the file exists
+    if (fs.existsSync(filepath)) {
+      console.log("Loading existing database file...");
+      const fileBuffer = fs.readFileSync(filepath); // Read file into a buffer
+      const db = new SQL.Database(fileBuffer); // Load database from buffer
+      console.log("Database loaded successfully!");
+      return db;
+    } else {
+      console.log("Database file not found. Creating a new database...");
+      const db = new SQL.Database(); // Create a new in-memory database
+      return db;
+    }
+  } catch (error) {
+    console.error("Error loading database:", error.message);
+    throw error;
+  }
 };
 
-createTable();
-
-export const insertUser = (email, password) => {
-  const sql = `
-    INSERT INTO users (email, password) VALUES (?, ?)
-  `;
-  db.prepare(sql).run(email, password);
+// Save the SQLite database to a file
+const saveDatabase = (db, filepath) => {
+  try {
+    const data = db.export(); // Export the database to a Uint8Array
+    const buffer = Buffer.from(data); // Convert Uint8Array to a Node.js buffer
+    fs.writeFileSync(filepath, buffer); // Write buffer to a file
+    console.log("Database saved successfully to:", filepath);
+  } catch (error) {
+    console.error("Error saving database:", error.message);
+    throw error;
+  }
 };
 
-insertUser("admin@admin.com", "admin");
+// Create tables in the database
+const setupDatabase = (db) => {
+  try {
+    db.run(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE,
+        password TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 
-const getUsers = () => {
-  const sql = `
-    SELECT * FROM users
-  `;
-  const rows = db.prepare(sql).all();
-  return rows;
+    console.log("Tables created successfully!");
+  } catch (error) {
+    console.error("Error setting up tables:", error.message);
+  }
 };
 
-export const getUser = (email) => {
-  const sql = `
-    SELECT * FROM users WHERE email = ?
-  `;
-  const row = db.prepare(sql).get(email);
-  return row;
+// Insert a user into the database
+export const insertUser = (db, email, password) => {
+  try {
+    db.run(`INSERT INTO users (email, password) VALUES (?, ?)`, [
+      email,
+      password,
+    ]);
+    console.log("User inserted:", email);
+  } catch (error) {
+    console.error("Error inserting user:", error.message);
+  }
 };
 
-const updateUser = (email, password) => {
-  const sql = `
-    UPDATE users SET password = ? WHERE username = ?
-  `;
-  db.prepare(sql).run(password, email);
+// Fetch all users from the database
+const getUsers = (db) => {
+  try {
+    const results = db.exec(`SELECT * FROM users`);
+    console.log("Users:", results[0]?.values || []);
+  } catch (error) {
+    console.error("Error fetching users:", error.message);
+  }
 };
-const deleteUser = (username) => {
-  const sql = `
-    DELETE FROM users WHERE username = ?
-  `;
-  db.prepare(sql).run(username);
+
+export const getUserById = (db, id) => {
+  try {
+    const results = db.exec(`SELECT * FROM users WHERE id = ?`, [id]);
+    return results[0]?.values[0] || null;
+  } catch (error) {
+    console.error("Error fetching user by ID:", error.message);
+    throw error;
+  }
 };
+export const getUser = (db, email) => {
+  try {
+    const results = db.exec(`SELECT * FROM users WHERE email = ?`, [email]);
+    return results[0]?.values[0] || null;
+  } catch (error) {
+    console.error("Error fetching user by email:", error.message);
+    throw error;
+  }
+};
+// Main function
+const main = async () => {
+  const filepath = "database.sqlite"; // Path to the SQLite database file
+
+  // Load or create the database
+  const db = await loadDatabase(filepath);
+
+  // Set up tables if they don't exist
+  setupDatabase(db);
+
+  // Insert a sample user
+  insertUser(db, "admin@admin.com", "admin123");
+
+  // Fetch and display all users
+  getUsers(db);
+
+  // Save changes back to the file
+  saveDatabase(db, filepath);
+};
+
+main().catch((err) => {
+  console.error("An error occurred:", err.message);
+});
