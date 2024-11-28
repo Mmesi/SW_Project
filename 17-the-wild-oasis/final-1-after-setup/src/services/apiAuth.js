@@ -4,29 +4,54 @@ import axios from "axios";
 const API_URL = "http://localhost:3001/auth";
 
 // Sign Up Function
-export const signup = async (username, email, password) => {
+export const signup = async (email, password) => {
   try {
-    const response = await axios.post(`${API_URL}/signup`, {
-      username,
-      email,
-      password,
+    const response = await fetch(`${API_URL}/signup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
     });
-    return response.data;
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Signup failed");
+    }
+
+    const data = await response.json();
+    return data; // Return the server response (e.g., user details or token)
   } catch (error) {
-    throw new Error(error.response.data.error || "Signup failed");
+    throw new Error(error.message || "Signup failed");
   }
 };
 
 // Log In Function
-export const login = async (username, password) => {
+export const login = async (email, password) => {
   try {
-    const response = await axios.post(`${API_URL}/login`, {
-      username,
-      password,
+    const response = await fetch("http://localhost:3001/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
     });
-    return response.data;
+
+    const data = await response.json();
+    console.log("DATA", data);
+    if (response.ok) {
+      return data;
+    } else {
+      console.error("Login failed:", data.error);
+    }
   } catch (error) {
-    throw new Error(error.response.data.error || "Login failed");
+    console.error("Error:", error);
   }
 };
 

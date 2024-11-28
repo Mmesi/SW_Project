@@ -7,7 +7,6 @@ const createTable = () => {
   const usersTable = `
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE,
       email TEXT UNIQUE,
       password TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -64,34 +63,36 @@ const createTable = () => {
 
 createTable();
 
-export const insertUser = (username, password) => {
+export const insertUser = (email, password) => {
   const sql = `
-    INSERT INTO users (username, password) VALUES (?, ?)
+    INSERT INTO users (email, password) VALUES (?, ?)
   `;
-  db.prepare(sql).run(username, password);
+  db.prepare(sql).run(email, password);
 };
+
+insertUser("admin@admin.com", "admin");
 
 const getUsers = () => {
   const sql = `
     SELECT * FROM users
   `;
   const rows = db.prepare(sql).all();
-  console.log(rows);
+  return rows;
 };
 
-export const getUser = (username) => {
+export const getUser = (email) => {
   const sql = `
-    SELECT * FROM users WHERE username = ?
+    SELECT * FROM users WHERE email = ?
   `;
-  const row = db.prepare(sql).get(username);
-  console.log(row);
+  const row = db.prepare(sql).get(email);
+  return row;
 };
 
-const updateUser = (username, password) => {
+const updateUser = (email, password) => {
   const sql = `
     UPDATE users SET password = ? WHERE username = ?
   `;
-  db.prepare(sql).run(password, username);
+  db.prepare(sql).run(password, email);
 };
 const deleteUser = (username) => {
   const sql = `
