@@ -11,7 +11,7 @@ function Dashboard() {
         <DashboardFilter />
       </Row>
 
-      <DashboardLayout />
+      {/* <DashboardLayout /> */}
     </>
   );
 }

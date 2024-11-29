@@ -1,19 +1,21 @@
 import express from "express";
 import cors from "cors";
-import { sign, verify } from "jsonwebtoken-esm";
+import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs"; // To hash passwords
 import { insertUser, getUser } from "./statement.js";
-import { signup, login } from "../services/apiAuth.js"; // Import authentication logic
+// import { signup, login } from "../services/apiAuth.js"; // Import authentication logic
 
+dotenv.config();
 const app = express();
 const PORT = 3001;
 
 app.use(cors());
 app.use(express.json());
 
-dotenv.config();
-const jwtSecretKey = process.env.JWT_SECRET;
+console.log("JWT Secret Key:", process.env.ACCESS_TOKEN_SECRET);
+const jwtSecretKey =
+  "f71969bdc197f1e7e8f07fe312b13d2bfd0c323b20ce0d761170013391d425cc1c8fd477bcd2a273e434f7844c93c534d0a9ebb2ff42123f76b0fcd2be8b081c";
 
 // Create New User
 app.post("/auth/signup", async (req, res) => {
@@ -25,7 +27,7 @@ app.post("/auth/signup", async (req, res) => {
   }
 
   // Check if the user already exists
-  const existingUser = await getUser(email);
+  const existingUser = getUser(email);
   if (existingUser) {
     return res.status(400).json({ error: "User already exists" });
   }
@@ -44,7 +46,7 @@ app.post("/auth/signup", async (req, res) => {
 
 // Login Route (Authenticate User)
 app.post("/auth/login", async (req, res) => {
-  const { email, password } = req.body.email;
+  const { email, password } = req.body;
 
   // Validate input
   if (!email || !password) {
@@ -62,13 +64,13 @@ app.post("/auth/login", async (req, res) => {
   // Compare the hashed password with the input password
   // const isPasswordValid = await bcrypt.compare(password, user.password);
   const isPasswordValid = password === user.password;
-  console.log("isPasswordValid", isPasswordValid);
+
   if (!isPasswordValid) {
     return res.status(400).json({ error: "Invalid credentials" });
   }
-
+  console.log("jwtSecretKey", jwtSecretKey);
   // Sign a JWT token
-  const token = sign({ id: user.id, email: user.email }, jwtSecretKey, {
+  const token = jwt.sign({ id: user.id, email: user.email }, jwtSecretKey, {
     expiresIn: "1h",
   });
 

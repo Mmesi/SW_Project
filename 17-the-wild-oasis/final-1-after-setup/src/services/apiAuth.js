@@ -1,14 +1,13 @@
 // auth.js
 import axios from "axios";
-import { verify } from "jsonwebtoken-esm";
-
+import { jwtDecode } from "jwt-decode";
 import { getUserById } from "../db/statement.js";
 
 const API_URL = "http://localhost:3001/auth";
 
 // Load environment variables from .env file
 
-const jwtSecretKey = "DQVFr+CqpnMxt0b4xbHEcCyxU0OSUV1v2mGgLP2/2Dk=";
+const secretKey = process.env.ACCESS_TOKEN_SECRET;
 
 // Sign Up Function
 export const signup = async (email, password) => {
@@ -18,10 +17,7 @@ export const signup = async (email, password) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        email,
-        password,
-      }),
+      body: JSON.stringify(email, password),
     });
 
     if (!response.ok) {
@@ -44,14 +40,11 @@ export const login = async (email, password) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        email,
-        password,
-      }),
+      body: JSON.stringify(email, password),
     });
 
     const data = await response.json();
-    console.log("Response data:", data);
+    console.log("Token", data.token);
 
     if (response.ok) {
       // Save token to localStorage
@@ -86,11 +79,12 @@ export async function getCurrentUser() {
   if (!token) return null; // No token available
 
   try {
-    // Verify the token using the secret key
-    const decoded = verify(token, jwtSecretKey);
+    // // Verify the token using the secret key
+    const decoded = jwtDecode(token);
 
     // Extract the user ID from the decoded token
     const userId = decoded.id;
+    console.log("userId", userId);
 
     // Fetch the user from the database
     const user = await getUserById(userId);

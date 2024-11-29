@@ -2,7 +2,7 @@ import fs from "fs"; // File system module
 
 import initSqlJs from "sql.js"; // SQL.js library
 
-let dbInstance = null;
+let dbInstance;
 
 // Load the SQLite database from a file or create a new one if the file doesn't exist
 const loadDatabase = async (filepath) => {
@@ -16,13 +16,13 @@ const loadDatabase = async (filepath) => {
     if (fs.existsSync(filepath)) {
       console.log("Loading existing database file...");
       const fileBuffer = fs.readFileSync(filepath); // Read file into a buffer
-      dbInstance = new SQL.Database(fileBuffer); // Load database from buffer
+      const db = new SQL.Database(fileBuffer); // Load database from buffer
       console.log("Database loaded successfully!");
-      // return db;
+      return db;
     } else {
       console.log("Database file not found. Creating a new database...");
-      dbInstance = new SQL.Database(); // Create a new in-memory database
-      // return db;
+      const db = new SQL.Database(); // Create a new in-memory database
+      return db;
     }
   } catch (error) {
     console.error("Error loading database:", error.message);
@@ -78,14 +78,14 @@ export const insertUser = (email, password) => {
 const getUsers = () => {
   try {
     const results = dbInstance.exec(`SELECT * FROM users`);
-    console.log("Users:", results[0]?.values || []);
   } catch (error) {
     console.error("Error fetching users:", error.message);
   }
 };
 
-export const getUserById = (id) => {
+export const getUserById = async (id) => {
   try {
+    const db = await loadDatabase("database.sqlite");
     const results = dbInstance.exec(`SELECT * FROM users WHERE id = ?`, [id]);
     return results[0]?.values[0] || null;
   } catch (error) {
@@ -98,32 +98,42 @@ export const getUser = (email) => {
     const result = dbInstance.exec(`SELECT * FROM users WHERE email = ?`, [
       email,
     ]);
-    return result[0]?.values[0] || null;
+
+    return result[0]?.values[0]
+      ? {
+          id: result[0].values[0][0],
+          email: result[0].values[0][1],
+          password: result[0].values[0][2],
+        }
+      : null;
   } catch (error) {
     console.error("Error fetching user by email:", error.message);
     throw error;
   }
 };
 // Main function
-const main = async () => {
-  const filepath = "database.sqlite"; // Path to the SQLite database file
 
-  // Load or create the database
-  await loadDatabase(filepath);
+// Main function to initialize the database
+export const initializeDatabase = async (filepath = "database.sqlite") => {
+  try {
+    // Load or create the database
+    dbInstance = await loadDatabase(filepath);
+    console.log("DB", dbInstance);
 
-  // Set up tables if they don't exist
-  setupDatabase();
+    // Set up tables if they don't exist
+    setupDatabase();
 
-  // Insert a sample user
-  // insertUser(db, "admin@admin.com", "admin123");
-
-  // Fetch and display all users
-  getUsers();
-
-  // Save changes back to the file
-  saveDatabase(filepath);
+    console.log("Database initialized and ready for use.");
+  } catch (error) {
+    console.error("Error initializing database:", error.message);
+    throw error;
+  }
 };
 
-main().catch((err) => {
-  console.error("An error occurred:", err.message);
+// Automatically initialize the database
+initializeDatabase().catch((err) => {
+  console.error(
+    "An error occurred during database initialization:",
+    err.message,
+  );
 });
