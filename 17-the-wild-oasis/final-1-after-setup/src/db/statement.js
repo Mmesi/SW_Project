@@ -51,6 +51,9 @@ const setupDatabase = () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT UNIQUE,
         password TEXT,
+        full_name TEXT,
+        avatar TEXT,
+        role TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -62,12 +65,12 @@ const setupDatabase = () => {
 };
 
 // Insert a user into the database
-export const insertUser = (email, password) => {
+export const insertUser = (email, password, fullName, avatar, role) => {
   try {
-    dbInstance.run(`INSERT INTO users (email, password) VALUES (?, ?)`, [
-      email,
-      password,
-    ]);
+    dbInstance.run(
+      `INSERT INTO users (email, password, full_name, avatar, role) VALUES (?, ?, ?, ?, ?)`,
+      [email, password, fullName, avatar, role],
+    );
     console.log("User inserted:", email);
   } catch (error) {
     console.error("Error inserting user:", error.message);
@@ -86,8 +89,22 @@ const getUsers = () => {
 export const getUserById = async (id) => {
   try {
     const db = await loadDatabase("database.sqlite");
-    const results = dbInstance.exec(`SELECT * FROM users WHERE id = ?`, [id]);
-    return results[0]?.values[0] || null;
+    const result = db.exec(`SELECT * FROM users WHERE id = ?`, [id]);
+
+    const [userId, email, password, fullName, avatar, role, dateCreated] =
+      result[0].values[0];
+
+    return {
+      id: userId,
+      email: email,
+      password: password,
+      user_metadata: {
+        full_name: fullName,
+        avatar: avatar,
+      },
+      role: role,
+      dateCreated: dateCreated,
+    };
   } catch (error) {
     console.error("Error fetching user by ID:", error.message);
     throw error;
@@ -104,6 +121,12 @@ export const getUser = (email) => {
           id: result[0].values[0][0],
           email: result[0].values[0][1],
           password: result[0].values[0][2],
+          user_metadata: {
+            full_name: result[0].values[0][3],
+            avatar: result[0].values[0][4],
+          },
+          role: result[0].values[0][5],
+          dateCreated: result[0].values[0][6],
         }
       : null;
   } catch (error) {
@@ -118,10 +141,19 @@ export const initializeDatabase = async (filepath = "database.sqlite") => {
   try {
     // Load or create the database
     dbInstance = await loadDatabase(filepath);
-    console.log("DB", dbInstance);
 
     // Set up tables if they don't exist
-    setupDatabase();
+    setupDatabase(dbInstance);
+
+    // Insert a user into the database
+    insertUser(
+      "admin@admin.com",
+      "admin123",
+      "John Doe",
+      "default-user.jpg",
+      "",
+    );
+    saveDatabase(filepath);
 
     console.log("Database initialized and ready for use.");
   } catch (error) {

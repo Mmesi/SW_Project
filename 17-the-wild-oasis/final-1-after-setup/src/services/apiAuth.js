@@ -44,13 +44,12 @@ export const login = async (email, password) => {
     });
 
     const data = await response.json();
-    console.log("Token", data.token);
 
     if (response.ok) {
       // Save token to localStorage
       localStorage.setItem("authToken", data.token);
 
-      console.log("Login successful. Token saved:", data.token);
+      // console.log("Login successful. Token saved:", data.token);
       return data.user;
     } else {
       console.error("Login failed:", data.error);
@@ -79,18 +78,19 @@ export async function getCurrentUser() {
   if (!token) return null; // No token available
 
   try {
-    // // Verify the token using the secret key
+    // Verify the token using the secret key
     const decoded = jwtDecode(token);
 
     // Extract the user ID from the decoded token
     const userId = decoded.id;
-    console.log("userId", userId);
 
-    // Fetch the user from the database
-    const user = await getUserById(userId);
-    if (!user) throw new Error("User not found");
+    /// Fetch user data from the backend API
+    const response = await fetch(`http://localhost:3001/user/${userId}`);
+    if (!response.ok) throw new Error("Failed to fetch user");
 
-    return user; // Return the user details
+    const data = await response.json();
+    console.log("Data", data);
+    return data;
   } catch (error) {
     console.error("Error verifying token:", error);
     return null; // Return null if token verification fails

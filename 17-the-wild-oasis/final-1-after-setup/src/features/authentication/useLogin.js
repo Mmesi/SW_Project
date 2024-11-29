@@ -13,7 +13,6 @@ export function useLogin() {
       queryClient.setQueryData(["user"], user);
       // localStorage.setItem("authToken", user.token);
       // localStorage.setItem("user", JSON.stringify(user));
-      console.log("USER", user);
       navigate("/dashboard", { replace: true });
     },
     onError: (err) => {

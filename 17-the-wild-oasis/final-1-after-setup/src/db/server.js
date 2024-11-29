@@ -3,7 +3,7 @@ import cors from "cors";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs"; // To hash passwords
-import { insertUser, getUser } from "./statement.js";
+import { insertUser, getUser, getUserById } from "./statement.js";
 // import { signup, login } from "../services/apiAuth.js"; // Import authentication logic
 
 dotenv.config();
@@ -74,10 +74,22 @@ app.post("/auth/login", async (req, res) => {
     expiresIn: "1h",
   });
 
-  // Send the token and user info back to the client
-  res.status(200).json({ token, user: { email: user.email, id: user.id } });
+  // Send the token and user with the role updated to authenticated
+  res.status(200).json({ token, user: { ...user, role: "authenticated" } });
 });
 
+//Get User by ID
+app.get("/user/:id", async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const user = await getUserById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
