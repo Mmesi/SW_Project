@@ -91,7 +91,7 @@ export const getUserById = async (id) => {
     const db = await loadDatabase("database.sqlite");
     const result = db.exec(`SELECT * FROM users WHERE id = ?`, [id]);
 
-    const [userId, email, password, fullName, avatar, role, dateCreated] =
+    const [userId, email, password, fullName, avatar, dateCreated] =
       result[0].values[0];
 
     return {
@@ -102,7 +102,7 @@ export const getUserById = async (id) => {
         full_name: fullName,
         avatar: avatar,
       },
-      role: role,
+      role: "authenticated",
       dateCreated: dateCreated,
     };
   } catch (error) {
@@ -146,13 +146,13 @@ export const initializeDatabase = async (filepath = "database.sqlite") => {
     setupDatabase(dbInstance);
 
     // Insert a user into the database
-    insertUser(
-      "admin@admin.com",
-      "admin123",
-      "John Doe",
-      "default-user.jpg",
-      "",
-    );
+    // insertUser(
+    //   "admin@admin.com",
+    //   "admin123",
+    //   "John Doe",
+    //   "default-user.jpg",
+    //   "",
+    // );
     saveDatabase(filepath);
 
     console.log("Database initialized and ready for use.");

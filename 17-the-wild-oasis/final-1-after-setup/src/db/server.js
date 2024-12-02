@@ -2,13 +2,12 @@ import express from "express";
 import cors from "cors";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import bcrypt from "bcryptjs"; // To hash passwords
+import bcrypt from "bcryptjs";
 import { insertUser, getUser, getUserById } from "./statement.js";
-// import { signup, login } from "../services/apiAuth.js"; // Import authentication logic
 
 dotenv.config();
 const app = express();
-const PORT = 3001;
+const PORT = 3002;
 
 app.use(cors());
 app.use(express.json());
