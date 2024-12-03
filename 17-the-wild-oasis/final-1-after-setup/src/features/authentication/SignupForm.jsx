@@ -12,12 +12,13 @@ function SignupForm() {
   const { register, formState, getValues, handleSubmit, reset } = useForm();
   const { errors } = formState;
 
-  function onSubmit({ fullName, email, password }) {
+  function onSubmit({ fullName, email, password, role }) {
+    const avatar = "default-user.jpg";
     signup(
-      { fullName, email, password },
+      { fullName, email, password, avatar, role },
       {
         onSettled: () => reset(),
-      }
+      },
     );
   }
 
@@ -76,6 +77,17 @@ function SignupForm() {
               value === getValues().password || "Passwords need to match",
           })}
         />
+      </FormRow>
+      <FormRow label="Role" error={errors?.role?.message}>
+        <select
+          id="role"
+          {...register("role", {
+            required: "This field is required",
+          })}
+        >
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
       </FormRow>
 
       <FormRow>

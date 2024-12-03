@@ -1,6 +1,7 @@
 import fs from "fs"; // File system module
 
 import initSqlJs from "sql.js"; // SQL.js library
+// import bcrypt from "bcryptjs";
 
 let dbInstance;
 
@@ -31,11 +32,11 @@ const loadDatabase = async (filepath) => {
 };
 
 // Save the SQLite database to a file
-const saveDatabase = (filepath) => {
+const saveDatabase = async (filepath) => {
   try {
-    const data = dbInstance.export(); // Export the database to a Uint8Array
-    const buffer = Buffer.from(data); // Convert Uint8Array to a Node.js buffer
-    fs.writeFileSync(filepath, buffer); // Write buffer to a file
+    const data = dbInstance.export();
+    const buffer = Buffer.from(data);
+    fs.writeFileSync(filepath, buffer);
     console.log("Database saved successfully to:", filepath);
   } catch (error) {
     console.error("Error saving database:", error.message);
@@ -65,13 +66,23 @@ const setupDatabase = () => {
 };
 
 // Insert a user into the database
-export const insertUser = (email, password, fullName, avatar, role) => {
+export const insertUser = async (fullName, email, password, avatar, role) => {
+  console.log(
+    // Log the values being inserted
+    "Inserting user:",
+    fullName,
+    email,
+    password,
+    avatar,
+    role,
+  );
   try {
     dbInstance.run(
       `INSERT INTO users (email, password, full_name, avatar, role) VALUES (?, ?, ?, ?, ?)`,
       [email, password, fullName, avatar, role],
     );
     console.log("User inserted:", email);
+    await saveDatabase("database.sqlite");
   } catch (error) {
     console.error("Error inserting user:", error.message);
   }
@@ -91,7 +102,7 @@ export const getUserById = async (id) => {
     const db = await loadDatabase("database.sqlite");
     const result = db.exec(`SELECT * FROM users WHERE id = ?`, [id]);
 
-    const [userId, email, password, fullName, avatar, dateCreated] =
+    const [userId, email, password, fullName, avatar, role, dateCreated] =
       result[0].values[0];
 
     return {
@@ -99,18 +110,19 @@ export const getUserById = async (id) => {
       email: email,
       password: password,
       user_metadata: {
-        full_name: fullName,
+        fullName: fullName,
         avatar: avatar,
       },
-      role: "authenticated",
+      role: role,
       dateCreated: dateCreated,
+      status: "authenticated",
     };
   } catch (error) {
     console.error("Error fetching user by ID:", error.message);
     throw error;
   }
 };
-export const getUser = (email) => {
+export const getUser = async (email) => {
   try {
     const result = dbInstance.exec(`SELECT * FROM users WHERE email = ?`, [
       email,
@@ -134,7 +146,6 @@ export const getUser = (email) => {
     throw error;
   }
 };
-// Main function
 
 // Main function to initialize the database
 export const initializeDatabase = async (filepath = "database.sqlite") => {
@@ -145,15 +156,18 @@ export const initializeDatabase = async (filepath = "database.sqlite") => {
     // Set up tables if they don't exist
     setupDatabase(dbInstance);
 
-    // Insert a user into the database
+    // Hash the password before saving to the database
+    // const hashedPassword = await bcrypt.hash("admin123", 10);
+
+    // // Insert a user into the database
     // insertUser(
     //   "admin@admin.com",
-    //   "admin123",
+    //   hashedPassword,
     //   "John Doe",
     //   "default-user.jpg",
-    //   "",
+    //   "admin",
     // );
-    saveDatabase(filepath);
+    // await saveDatabase(filepath);
 
     console.log("Database initialized and ready for use.");
   } catch (error) {

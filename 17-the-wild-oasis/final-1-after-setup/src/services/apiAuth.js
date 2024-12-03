@@ -1,18 +1,17 @@
 // auth.js
-import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
-const API_URL = "http://localhost:3001";
+const API_URL = "http://localhost:3002";
 
 // Sign Up Function
-export const signup = async (email, password) => {
+export const signup = async (user) => {
   try {
     const response = await fetch(`${API_URL}/auth/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(email, password),
+      body: JSON.stringify(user),
     });
 
     if (!response.ok) {
@@ -21,9 +20,9 @@ export const signup = async (email, password) => {
     }
 
     const data = await response.json();
-    return data; // Return the server response (e.g., user details or token)
+    return { success: true, data };
   } catch (error) {
-    throw new Error(error.message || "Signup failed");
+    return { success: false, error: error.message || "Signup failed" };
   }
 };
 
@@ -41,28 +40,20 @@ export const login = async (email, password) => {
     const data = await response.json();
 
     if (response.ok) {
-      // Save token to localStorage
       localStorage.setItem("authToken", data.token);
 
-      // console.log("Login successful. Token saved:", data.token);
+      console.log("Login successful. Token saved:", data.token);
       return data.user;
     } else {
-      // console.error("Login failed:", data.error);
       throw new Error(data.error || "Login failed");
     }
   } catch (error) {
-    // console.error("Error:", error);
     throw new Error(error || "Login failed");
   }
 };
 
 export const logout = async () => {
-  try {
-    const response = await axios.post(`${API_URL}/logout`);
-    return response.data;
-  } catch (error) {
-    throw new Error(error.response.data.error || "Logout failed");
-  }
+  localStorage.removeItem("authToken");
 };
 export const updateCurrentUser = (newUser) => {
   localStorage.setItem("user", JSON.stringify(newUser));
@@ -81,11 +72,10 @@ export async function getCurrentUser() {
     const isTokenExpired = Date.now() >= decoded.exp * 1000;
 
     if (isTokenExpired) {
-      localStorage.removeItem("authToken"); // Clear invalid token
+      localStorage.removeItem("authToken");
       return null;
     }
 
-    // Extract the user ID from the decoded token
     const userId = decoded.id;
 
     /// Fetch user data from the backend API
