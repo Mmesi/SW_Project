@@ -55,6 +55,7 @@ export const login = async (email, password) => {
 export const logout = async () => {
   localStorage.removeItem("authToken");
 };
+
 export const updateCurrentUser = (newUser) => {
   localStorage.setItem("user", JSON.stringify(newUser));
   return newUser;
@@ -89,4 +90,13 @@ export async function getCurrentUser() {
     localStorage.removeItem("authToken");
     return null; // Return null if token verification fails
   }
+}
+export async function getAllUsers() {
+  const response = await fetch(`${API_URL}/users`);
+  console.log(response);
+  if (!response.ok) throw new Error("Failed to fetch users");
+
+  const users = await response.json();
+
+  return users;
 }

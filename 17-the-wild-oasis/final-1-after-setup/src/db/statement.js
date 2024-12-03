@@ -89,11 +89,38 @@ export const insertUser = async (fullName, email, password, avatar, role) => {
 };
 
 // Fetch all users from the database
-const getUsers = () => {
+export const getUsers = async () => {
   try {
-    const results = dbInstance.exec(`SELECT * FROM users`);
+    const result = dbInstance.exec("SELECT * FROM users");
+
+    // Check if there are any rows in the result
+    if (!result[0]?.values || result[0].values.length === 0) {
+      console.log("No users found");
+      return [];
+    }
+
+    // Map the rows into structured objects
+    const users = result[0].values.map((row) => {
+      const [id, email, password, fullName, avatar, role, dateCreated] = row;
+
+      return {
+        id,
+        email,
+        password,
+        user_metadata: {
+          full_name: fullName,
+          avatar,
+        },
+        role,
+        dateCreated,
+      };
+    });
+
+    console.log("Fetched users:", users);
+    return users;
   } catch (error) {
     console.error("Error fetching users:", error.message);
+    throw error;
   }
 };
 
