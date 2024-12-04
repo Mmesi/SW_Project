@@ -1,4 +1,5 @@
 // auth.js
+
 import { jwtDecode } from "jwt-decode";
 
 const API_URL = "http://localhost:3002";
@@ -38,16 +39,15 @@ export const login = async (email, password) => {
     });
 
     const data = await response.json();
-
     if (response.ok) {
       localStorage.setItem("authToken", data.token);
 
       return data.user;
     } else {
-      throw new Error(data.error || "Login failed");
+      throw data.error || "Login failed";
     }
   } catch (error) {
-    throw new Error(error || "Login failed");
+    throw error || "Login failed";
   }
 };
 

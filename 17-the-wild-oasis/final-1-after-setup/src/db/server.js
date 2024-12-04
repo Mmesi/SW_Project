@@ -13,15 +13,15 @@ import {
   updateUser,
 } from "./statement.js";
 
-// Apply the rate limiting middleware to all requests.
 dotenv.config();
 
+// Apply the rate limiting middleware to all requests.
 const loginLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  limit: 5, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
-  message: "Too many tries, please try again after 15 minutes",
-  standardHeaders: "draft-7", // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+  windowMs: 2 * 60 * 1000, // 1 minute
+  limit: 5,
+  message: { error: "Too many failed attempts, please try again later" },
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
 });
 
 const app = express();
@@ -29,6 +29,7 @@ const PORT = 3002;
 
 app.use(cors());
 app.use(express.json());
+
 app.use("/auth/login", loginLimiter);
 
 console.log("JWT Secret Key:", process.env.VITE_ACCESS_TOKEN_SECRET);
@@ -84,7 +85,6 @@ app.post("/auth/login", async (req, res) => {
 
   // Compare the hashed password with the input password
   const isPasswordValid = await bcrypt.compare(password, user.password);
-  // const isPasswordValid = password === user.password;
 
   if (!isPasswordValid) {
     return res.status(400).json({ error: "Invalid credentials" });
