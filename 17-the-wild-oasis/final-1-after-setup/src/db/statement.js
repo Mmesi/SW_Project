@@ -87,7 +87,7 @@ export const getUsers = async () => {
 
     const result = [];
     while (stmt.step()) {
-      const user = stmt.getAsObject();
+      const user = await stmt.getAsObject();
 
       result.push({
         id: user.id,
@@ -138,11 +138,13 @@ export const deleteUserById = async (userId) => {
 
 export const getUserById = async (id) => {
   try {
-    const stmt = dbInstance.prepare("SELECT * FROM users WHERE id=:idval");
+    const stmt = await dbInstance.prepare(
+      "SELECT * FROM users WHERE id=:idval",
+    );
 
-    const result = stmt.getAsObject({ ":idval": id });
+    const result = await stmt.getAsObject({ ":idval": id });
+
     stmt.free();
-
     return {
       ...result,
       user_metadata: { fullName: result.full_name, avatar: result.avatar },
@@ -156,14 +158,18 @@ export const getUserById = async (id) => {
 };
 export const getUser = async (email) => {
   try {
-    const stmt = dbInstance.prepare(
+    const stmt = await dbInstance.prepare(
       "SELECT * FROM users WHERE email=:emailval",
     );
 
-    const result = stmt.getAsObject({ ":emailval": email });
+    const result = await stmt.getAsObject({ ":emailval": email });
+
     stmt.free();
 
-    return result;
+    return {
+      ...result,
+      user_metadata: { fullName: result.full_name, avatar: result.avatar },
+    };
   } catch (error) {
     console.error("Error fetching user by email:", error.message);
     throw error;
@@ -171,20 +177,39 @@ export const getUser = async (email) => {
 };
 
 // Update a user in the database
-export const updateUser = async (userId, fullName, avatar) => {
-  try {
-    const stmt = dbInstance.prepare(
-      "UPDATE users SET full_name = ?, avatar = ? WHERE id = ?",
-    );
+export const updateUser = async (userId, data) => {
+  console.log(data.password, data.fullName, data.avatar);
+  if (data.password) {
+    try {
+      const stmt = dbInstance.prepare(
+        "UPDATE users SET password = ? WHERE id = ?",
+      );
 
-    stmt.bind([fullName, avatar, userId]);
-    stmt.step();
-    stmt.free();
+      stmt.bind([data.password, userId]);
+      stmt.step();
+      stmt.free();
 
-    await saveDatabase("database.sqlite");
-  } catch (error) {
-    console.error("Error updating user:", error.message);
-    throw error;
+      await saveDatabase("database.sqlite");
+    } catch (error) {
+      console.error("Error updating user:", error.message);
+      throw error;
+    }
+  }
+  if (data.fullName) {
+    try {
+      const stmt = dbInstance.prepare(
+        "UPDATE users SET full_name = ?, avatar = ? WHERE id = ?",
+      );
+
+      stmt.bind([data.fullName, data.avatar, userId]);
+      stmt.step();
+      stmt.free();
+
+      await saveDatabase("database.sqlite");
+    } catch (error) {
+      console.error("Error updating user:", error.message);
+      throw error;
+    }
   }
 };
 

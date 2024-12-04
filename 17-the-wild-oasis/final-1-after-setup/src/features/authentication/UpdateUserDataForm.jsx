@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import Button from "../../ui/Button";
-import FileInput from "../../ui/FileInput";
+// import FileInput from "../../ui/FileInput";
 import Form from "../../ui/Form";
 import FormRow from "../../ui/FormRow";
 import Input from "../../ui/Input";
@@ -12,6 +12,7 @@ import { useUpdateUser } from "./useUpdateUser";
 function UpdateUserDataForm() {
   const {
     user: {
+      id,
       email,
       user_metadata: { fullName: currentFullName },
     },
@@ -26,7 +27,7 @@ function UpdateUserDataForm() {
     e.preventDefault();
     if (!fullName) return;
     updateUser(
-      { fullName, avatar },
+      { id, fullName, avatar },
       {
         onSuccess: () => {
           setAvatar(null);
@@ -57,14 +58,14 @@ function UpdateUserDataForm() {
         />
       </FormRow>
 
-      <FormRow label="Avatar image">
+      {/* <FormRow label="Avatar image">
         <FileInput
           id="avatar"
           accept="image/*"
           onChange={(e) => setAvatar(e.target.files[0])}
           disabled={isUpdating}
         />
-      </FormRow>
+      </FormRow> */}
 
       <FormRow>
         <Button

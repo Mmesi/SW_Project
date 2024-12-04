@@ -87,7 +87,7 @@ export async function getCurrentUser() {
 }
 export async function getAllUsers() {
   const currentUserEmail = await getCurrentUser().then((res) => res.email);
-  console.log(currentUserEmail);
+
   const response = await fetch(`${API_URL}/users`);
 
   if (!response.ok) throw new Error("Failed to fetch users");
@@ -110,8 +110,8 @@ export async function deleteUser(userId) {
   return true;
 }
 
-export async function updateCurrentUser(userId, updatedUserData) {
-  const response = await fetch(`${API_URL}/users/${userId}`, {
+export async function updateCurrentUser(updatedUserData) {
+  const response = await fetch(`${API_URL}/users/${updatedUserData.id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
