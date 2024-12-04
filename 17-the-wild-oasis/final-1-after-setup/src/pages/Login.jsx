@@ -3,7 +3,7 @@ import styled from "styled-components";
 import LoginForm from "../features/authentication/LoginForm";
 import Logo from "../ui/Logo";
 import Heading from "../ui/Heading";
-import { useUser } from "../features/authentication/useUser";
+import { useUser } from "../features/users/useUser";
 import { useEffect } from "react";
 
 const LoginLayout = styled.main`

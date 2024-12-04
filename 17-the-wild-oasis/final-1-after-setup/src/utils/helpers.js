@@ -26,3 +26,17 @@ export const formatCurrency = (value) =>
   new Intl.NumberFormat("en", { style: "currency", currency: "USD" }).format(
     value,
   );
+
+export function formatDate(dateString) {
+  const options = {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  };
+
+  const date = new Date(dateString.replace(" ", "T"));
+  return date.toLocaleDateString("en-UK", options);
+}

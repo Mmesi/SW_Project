@@ -3,7 +3,13 @@ import cors from "cors";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
-import { insertUser, getUser, getUserById, getUsers } from "./statement.js";
+import {
+  insertUser,
+  getUser,
+  getUserById,
+  getUsers,
+  deleteUserById,
+} from "./statement.js";
 
 dotenv.config();
 const app = express();
@@ -97,6 +103,19 @@ app.get("/users", async (req, res) => {
   try {
     const users = await getUsers();
     res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.delete("/users/:id", async (req, res) => {
+  const userId = req.params.id;
+  console.log(userId);
+  try {
+    const user = await deleteUserById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.status(200).json({ message: "User deleted successfully", user });
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }

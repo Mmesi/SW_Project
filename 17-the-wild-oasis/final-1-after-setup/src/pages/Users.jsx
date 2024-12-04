@@ -1,5 +1,5 @@
 import SignupForm from "../features/authentication/SignupForm";
-import { useUser } from "../features/authentication/useUser";
+import { useUser } from "../features/users/useUser";
 import ExistingUsers from "../ui/ExistingUsers";
 import Heading from "../ui/Heading";
 

@@ -1,4 +1,4 @@
-import { useAllUsers } from "../features/authentication/useAllUsers";
+import { useAllUsers } from "../features/users/useAllUsers";
 import ExistingUserRow from "./ExistingUserRow";
 import Heading from "./Heading";
 import Menus from "./Menus";
@@ -6,7 +6,6 @@ import Table from "./Table";
 
 function ExistingUsers() {
   const { users, isLoading } = useAllUsers();
-  console.log(users);
 
   if (isLoading) return <div>Loading...</div>;
   //   if (isError || !users)

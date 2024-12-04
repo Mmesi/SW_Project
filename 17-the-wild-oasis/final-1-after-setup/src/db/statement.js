@@ -67,21 +67,12 @@ const setupDatabase = () => {
 
 // Insert a user into the database
 export const insertUser = async (fullName, email, password, avatar, role) => {
-  console.log(
-    // Log the values being inserted
-    "Inserting user:",
-    fullName,
-    email,
-    password,
-    avatar,
-    role,
-  );
   try {
     dbInstance.run(
       `INSERT INTO users (email, password, full_name, avatar, role) VALUES (?, ?, ?, ?, ?)`,
       [email, password, fullName, avatar, role],
     );
-    console.log("User inserted:", email);
+
     await saveDatabase("database.sqlite");
   } catch (error) {
     console.error("Error inserting user:", error.message);
@@ -94,7 +85,6 @@ export const getUsers = async () => {
     const result = dbInstance.exec("SELECT * FROM users");
 
     if (!result[0]?.values || result[0].values.length === 0) {
-      console.log("No users found");
       return [];
     }
 
@@ -114,10 +104,31 @@ export const getUsers = async () => {
       };
     });
 
-    console.log("Fetched users:", users);
     return users;
   } catch (error) {
     console.error("Error fetching users:", error.message);
+    throw error;
+  }
+};
+
+export const deleteUserById = async (userId) => {
+  try {
+    const stmt = dbInstance.prepare("DELETE FROM users WHERE id=:idval");
+    console.log(stmt);
+    const result = stmt.getAsObject({ ":idval": userId });
+
+    // console.log("Operation result:", result);
+
+    // Check if rows were affected
+    if (result) {
+      await saveDatabase("database.sqlite");
+      return { id: userId };
+    } else {
+      console.log("User not found");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error deleting user:", error.message);
     throw error;
   }
 };

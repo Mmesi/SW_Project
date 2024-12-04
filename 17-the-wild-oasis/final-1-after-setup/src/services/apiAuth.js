@@ -42,7 +42,6 @@ export const login = async (email, password) => {
     if (response.ok) {
       localStorage.setItem("authToken", data.token);
 
-      console.log("Login successful. Token saved:", data.token);
       return data.user;
     } else {
       throw new Error(data.error || "Login failed");
@@ -92,11 +91,26 @@ export async function getCurrentUser() {
   }
 }
 export async function getAllUsers() {
+  const currentUserEmail = await getCurrentUser().then((res) => res.email);
+  console.log(currentUserEmail);
   const response = await fetch(`${API_URL}/users`);
-  console.log(response);
+
   if (!response.ok) throw new Error("Failed to fetch users");
 
   const users = await response.json();
 
-  return users;
+  const filteredUsers = users.filter((user) => user.email !== currentUserEmail);
+
+  return filteredUsers;
+}
+
+export async function deleteUser(userId) {
+  const response = await fetch(`${API_URL}/users/${userId}`, {
+    method: "DELETE",
+  });
+  console.log(response);
+
+  if (!response.ok) throw new Error("Failed to delete user");
+
+  return true;
 }
