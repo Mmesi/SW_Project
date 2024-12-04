@@ -82,29 +82,32 @@ export const insertUser = async (fullName, email, password, avatar, role) => {
 // Fetch all users from the database
 export const getUsers = async () => {
   try {
-    const result = dbInstance.exec("SELECT * FROM users");
+    // Prepare the SQL statement
+    const stmt = dbInstance.prepare("SELECT * FROM users");
 
-    if (!result[0]?.values || result[0].values.length === 0) {
+    const result = [];
+    while (stmt.step()) {
+      const user = stmt.getAsObject();
+
+      result.push({
+        id: user.id,
+        email: user.email,
+        user_metadata: {
+          fullName: user.full_name,
+          avatar: user.avatar,
+        },
+        role: user.role,
+        dateCreated: user.created_at,
+      });
+    }
+
+    stmt.free();
+
+    if (result.length === 0) {
       return [];
     }
 
-    // Map the rows into structured objects
-    const users = result[0].values.map((row) => {
-      const [id, email, , fullName, avatar, role, dateCreated] = row;
-
-      return {
-        id,
-        email,
-        user_metadata: {
-          fullName,
-          avatar,
-        },
-        role,
-        dateCreated,
-      };
-    });
-
-    return users;
+    return result;
   } catch (error) {
     console.error("Error fetching users:", error.message);
     throw error;
@@ -114,7 +117,7 @@ export const getUsers = async () => {
 export const deleteUserById = async (userId) => {
   try {
     const stmt = dbInstance.prepare("DELETE FROM users WHERE id=:idval");
-    console.log(stmt);
+
     const result = stmt.getAsObject({ ":idval": userId });
 
     // console.log("Operation result:", result);
@@ -135,22 +138,15 @@ export const deleteUserById = async (userId) => {
 
 export const getUserById = async (id) => {
   try {
-    const db = await loadDatabase("database.sqlite");
-    const result = db.exec(`SELECT * FROM users WHERE id = ?`, [id]);
+    const stmt = dbInstance.prepare("SELECT * FROM users WHERE id=:idval");
 
-    const [userId, email, password, fullName, avatar, role, dateCreated] =
-      result[0].values[0];
+    const result = stmt.getAsObject({ ":idval": id });
+    stmt.free();
 
     return {
-      id: userId,
-      email: email,
-      password: password,
-      user_metadata: {
-        fullName: fullName,
-        avatar: avatar,
-      },
-      role: role,
-      dateCreated: dateCreated,
+      ...result,
+      user_metadata: { fullName: result.full_name, avatar: result.avatar },
+      dateCreated: result.created_at,
       status: "authenticated",
     };
   } catch (error) {
@@ -160,25 +156,34 @@ export const getUserById = async (id) => {
 };
 export const getUser = async (email) => {
   try {
-    const result = dbInstance.exec(`SELECT * FROM users WHERE email = ?`, [
-      email,
-    ]);
+    const stmt = dbInstance.prepare(
+      "SELECT * FROM users WHERE email=:emailval",
+    );
 
-    return result[0]?.values[0]
-      ? {
-          id: result[0].values[0][0],
-          email: result[0].values[0][1],
-          password: result[0].values[0][2],
-          user_metadata: {
-            full_name: result[0].values[0][3],
-            avatar: result[0].values[0][4],
-          },
-          role: result[0].values[0][5],
-          dateCreated: result[0].values[0][6],
-        }
-      : null;
+    const result = stmt.getAsObject({ ":emailval": email });
+    stmt.free();
+
+    return result;
   } catch (error) {
     console.error("Error fetching user by email:", error.message);
+    throw error;
+  }
+};
+
+// Update a user in the database
+export const updateUser = async (userId, fullName, avatar) => {
+  try {
+    const stmt = dbInstance.prepare(
+      "UPDATE users SET full_name = ?, avatar = ? WHERE id = ?",
+    );
+
+    stmt.bind([fullName, avatar, userId]);
+    stmt.step();
+    stmt.free();
+
+    await saveDatabase("database.sqlite");
+  } catch (error) {
+    console.error("Error updating user:", error.message);
     throw error;
   }
 };

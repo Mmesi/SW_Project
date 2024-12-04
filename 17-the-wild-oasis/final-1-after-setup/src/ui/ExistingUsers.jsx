@@ -11,6 +11,7 @@ function ExistingUsers() {
   //   if (isError || !users)
   //     return <div>Error fetching users or no users available.</div>;
 
+  if (users.length === 0) return <div>No users found</div>;
   return (
     <>
       <Heading>Existing Users</Heading>
@@ -25,8 +26,6 @@ function ExistingUsers() {
           </Table.Header>
 
           <Table.Body
-            // data={cabins}
-            // data={filteredCabins}
             data={users}
             render={(user) => <ExistingUserRow user={user} key={user.id} />}
           />

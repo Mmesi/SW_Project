@@ -55,11 +55,6 @@ export const logout = async () => {
   localStorage.removeItem("authToken");
 };
 
-export const updateCurrentUser = (newUser) => {
-  localStorage.setItem("user", JSON.stringify(newUser));
-  return newUser;
-};
-
 export async function getCurrentUser() {
   // Retrieve the token from localStorage
   const token = localStorage.getItem("authToken");
@@ -113,4 +108,20 @@ export async function deleteUser(userId) {
   if (!response.ok) throw new Error("Failed to delete user");
 
   return true;
+}
+
+export async function updateCurrentUser(userId, updatedUserData) {
+  const response = await fetch(`${API_URL}/users/${userId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(updatedUserData),
+  });
+
+  if (!response.ok) throw new Error("Failed to update user");
+
+  const updatedUser = await response.json();
+
+  return updatedUser;
 }
