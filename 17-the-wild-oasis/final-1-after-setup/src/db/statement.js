@@ -93,7 +93,6 @@ export const getUsers = async () => {
   try {
     const result = dbInstance.exec("SELECT * FROM users");
 
-    // Check if there are any rows in the result
     if (!result[0]?.values || result[0].values.length === 0) {
       console.log("No users found");
       return [];
@@ -101,14 +100,13 @@ export const getUsers = async () => {
 
     // Map the rows into structured objects
     const users = result[0].values.map((row) => {
-      const [id, email, password, fullName, avatar, role, dateCreated] = row;
+      const [id, email, , fullName, avatar, role, dateCreated] = row;
 
       return {
         id,
         email,
-        password,
         user_metadata: {
-          full_name: fullName,
+          fullName,
           avatar,
         },
         role,

@@ -10,7 +10,6 @@ function NewUsers() {
     return <Heading as="h1">You are not authorized to view users</Heading>;
   return (
     <>
-      <Heading as="h1">Existing Users</Heading>
       <ExistingUsers />
       <Heading as="h1">Create a new user</Heading>
       <SignupForm />
