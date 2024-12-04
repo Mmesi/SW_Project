@@ -5,6 +5,7 @@ import Input from "../../ui/Input";
 import FormRowVertical from "../../ui/FormRowVertical";
 import { useLogin } from "./useLogin";
 import SpinnerMini from "../../ui/SpinnerMini";
+import toast from "react-hot-toast";
 
 function LoginForm() {
   const [email, setEmail] = useState("admin@admin.com");
@@ -14,8 +15,29 @@ function LoginForm() {
   function handleSubmit(e) {
     e.preventDefault();
     if (!email || !password) return;
+
+    //input validation and sanitization
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address.", { duration: 100 });
+      return;
+    }
+
+    // Password length validation
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters long.", {
+        duration: 1000,
+      });
+      return;
+    }
+
+    //Password Sanitization
+    const sanitizedPassword = password
+      .replace(/[=\\"';\-()[\]{}<>%#&|]]/g, "")
+      .trim();
+
     login(
-      { email, password },
+      { email: email.trim(), password: sanitizedPassword },
       {
         onSettled: () => {
           setEmail("");

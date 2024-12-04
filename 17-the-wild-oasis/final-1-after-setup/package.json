@@ -19,6 +19,7 @@
     "date-fns": "^2.30.0",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
+    "express-rate-limit": "^7.4.1",
     "jsonwebtoken": "^9.0.2",
     "jsonwebtoken-esm": "^2.0.1",
     "jwt-decode": "^4.0.0",

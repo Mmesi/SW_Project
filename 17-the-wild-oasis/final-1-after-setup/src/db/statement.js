@@ -120,8 +120,6 @@ export const deleteUserById = async (userId) => {
 
     const result = stmt.getAsObject({ ":idval": userId });
 
-    // console.log("Operation result:", result);
-
     // Check if rows were affected
     if (result) {
       await saveDatabase("database.sqlite");
@@ -178,7 +176,6 @@ export const getUser = async (email) => {
 
 // Update a user in the database
 export const updateUser = async (userId, data) => {
-  console.log(data.password, data.fullName, data.avatar);
   if (data.password) {
     try {
       const stmt = dbInstance.prepare(

@@ -20,8 +20,6 @@ function Login() {
   const { isLoading, isAuthenticated } = useUser();
   const navigate = useNavigate();
 
-  console.log(isAuthenticated);
-
   // Redirect to dashboard if authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated) {

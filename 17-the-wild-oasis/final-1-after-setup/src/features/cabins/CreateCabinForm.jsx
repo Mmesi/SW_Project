@@ -34,7 +34,7 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
             reset();
             onCloseModal?.();
           },
-        }
+        },
       );
     else
       createCabin(
@@ -44,13 +44,11 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
             reset();
             onCloseModal?.();
           },
-        }
+        },
       );
   }
 
-  function onError(errors) {
-    // console.log(errors);
-  }
+  function onError(errors) {}
 
   return (
     <Form

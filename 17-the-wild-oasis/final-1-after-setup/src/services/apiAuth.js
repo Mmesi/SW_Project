@@ -103,7 +103,6 @@ export async function deleteUser(userId) {
   const response = await fetch(`${API_URL}/users/${userId}`, {
     method: "DELETE",
   });
-  console.log(response);
 
   if (!response.ok) throw new Error("Failed to delete user");
 

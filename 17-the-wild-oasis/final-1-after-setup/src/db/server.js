@@ -3,6 +3,7 @@ import cors from "cors";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
+import { rateLimit } from "express-rate-limit";
 import {
   insertUser,
   getUser,
@@ -12,14 +13,25 @@ import {
   updateUser,
 } from "./statement.js";
 
+// Apply the rate limiting middleware to all requests.
 dotenv.config();
+
+const loginLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  limit: 5, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+  message: "Too many tries, please try again after 15 minutes",
+  standardHeaders: "draft-7", // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+});
+
 const app = express();
 const PORT = 3002;
 
 app.use(cors());
 app.use(express.json());
+app.use("/auth/login", loginLimiter);
 
-console.log("JWT Secret Key:", process.env.ACCESS_TOKEN_SECRET);
+console.log("JWT Secret Key:", process.env.VITE_ACCESS_TOKEN_SECRET);
 const jwtSecretKey =
   "f71969bdc197f1e7e8f07fe312b13d2bfd0c323b20ce0d761170013391d425cc1c8fd477bcd2a273e434f7844c93c534d0a9ebb2ff42123f76b0fcd2be8b081c";
 
