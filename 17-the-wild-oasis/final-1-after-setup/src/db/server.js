@@ -14,7 +14,6 @@ import {
 } from "./statement.js";
 
 dotenv.config();
-
 // Apply the rate limiting middleware to all requests.
 const loginLimiter = rateLimit({
   windowMs: 2 * 60 * 1000, // 2 minute
@@ -31,7 +30,6 @@ const PORT = 3002;
 app.use(cors());
 app.use(express.json());
 
-console.log("JWT Secret Key:", process.env.VITE_ACCESS_TOKEN_SECRET);
 const jwtSecretKey =
   "f71969bdc197f1e7e8f07fe312b13d2bfd0c323b20ce0d761170013391d425cc1c8fd477bcd2a273e434f7844c93c534d0a9ebb2ff42123f76b0fcd2be8b081c";
 
@@ -45,17 +43,13 @@ app.post("/auth/signup", async (req, res) => {
       error: `All required fields must be provided`,
     });
   }
-  
-
   // Check if the user already exists
   const existingUser = await getUser(email);
   if (existingUser) {
     return res.status(400).json({ error: "Unable to process request" });
   }
-
   // Hash the password before saving to the database
   const hashedPassword = await bcrypt.hash(password, 10);
-
   try {
     // Insert the new user into the database
     await insertUser(fullName, email, hashedPassword, avatar, role);
@@ -64,11 +58,9 @@ app.post("/auth/signup", async (req, res) => {
     res.status(500).json({ error: "Error creating user" });
   }
 });
-
 // Login Route (Authenticate User)
 app.post("/auth/login", async (req, res) => {
   const { email, password } = req.body;
-
   // Validate input
   if (!email || !password) {
     return res.status(400).json({

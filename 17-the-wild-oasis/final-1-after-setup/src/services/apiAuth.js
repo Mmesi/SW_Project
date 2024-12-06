@@ -14,7 +14,6 @@ export const signup = async (user) => {
       },
       body: JSON.stringify(user),
     });
-
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || "Signup failed");
@@ -26,7 +25,6 @@ export const signup = async (user) => {
     return { success: false, error: error.message || "Signup failed" };
   }
 };
-
 // Log In Function
 export const login = async (email, password) => {
   try {

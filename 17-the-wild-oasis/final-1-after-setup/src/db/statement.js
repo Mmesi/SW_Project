@@ -1,10 +1,7 @@
 import fs from "fs"; // File system module
-
 import initSqlJs from "sql.js"; // SQL.js library
-// import bcrypt from "bcryptjs";
 
 let dbInstance;
-
 // Load the SQLite database from a file or create a new one if the file doesn't exist
 const loadDatabase = async (filepath) => {
   try {
@@ -12,16 +9,12 @@ const loadDatabase = async (filepath) => {
     const SQL = await initSqlJs({
       locateFile: (filename) => `../../node_modules/sql.js/dist/${filename}`,
     });
-
     // Check if the file exists
     if (fs.existsSync(filepath)) {
-      console.log("Loading existing database file...");
       const fileBuffer = fs.readFileSync(filepath); // Read file into a buffer
       const db = new SQL.Database(fileBuffer); // Load database from buffer
-      console.log("Database loaded successfully!");
       return db;
     } else {
-      console.log("Database file not found. Creating a new database...");
       const db = new SQL.Database(); // Create a new in-memory database
       return db;
     }
@@ -30,20 +23,17 @@ const loadDatabase = async (filepath) => {
     throw error;
   }
 };
-
 // Save the SQLite database to a file
 const saveDatabase = async (filepath) => {
   try {
     const data = dbInstance.export();
     const buffer = Buffer.from(data);
     fs.writeFileSync(filepath, buffer);
-    console.log("Database saved successfully to:", filepath);
   } catch (error) {
     console.error("Error saving database:", error.message);
     throw error;
   }
 };
-
 // Create tables in the database
 const setupDatabase = () => {
   try {
@@ -58,8 +48,6 @@ const setupDatabase = () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-
-    console.log("Tables created successfully!");
   } catch (error) {
     console.error("Error setting up tables:", error.message);
   }
@@ -78,7 +66,6 @@ export const insertUser = async (fullName, email, password, avatar, role) => {
     console.error("Error inserting user:", error.message);
   }
 };
-
 // Fetch all users from the database
 export const getUsers = async () => {
   try {
@@ -100,13 +87,10 @@ export const getUsers = async () => {
         dateCreated: user.created_at,
       });
     }
-
     stmt.free();
-
     if (result.length === 0) {
       return [];
     }
-
     return result;
   } catch (error) {
     console.error("Error fetching users:", error.message);

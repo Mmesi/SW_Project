@@ -8,21 +8,19 @@ import SpinnerMini from "../../ui/SpinnerMini";
 import toast from "react-hot-toast";
 
 function LoginForm() {
-  const [email, setEmail] = useState("admin@admin.com");
-  const [password, setPassword] = useState("admin321");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const { login, isLoading } = useLogin();
 
   function handleSubmit(e) {
     e.preventDefault();
     if (!email || !password) return;
-
     //input validation and sanitization
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast.error("Please enter a valid email address.", { duration: 100 });
       return;
     }
-
     // Password length validation
     if (password.length < 8) {
       toast.error("Password must be at least 8 characters long.", {
@@ -30,12 +28,10 @@ function LoginForm() {
       });
       return;
     }
-
     //Password Sanitization
     const sanitizedPassword = password
       .replace(/[=\\"';\-()[\]{}<>%#&|]]/g, "")
       .trim();
-
     login(
       { email: email.trim(), password: sanitizedPassword },
       {
