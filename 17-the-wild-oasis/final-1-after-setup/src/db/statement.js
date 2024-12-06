@@ -119,7 +119,6 @@ export const deleteUserById = async (userId) => {
     const stmt = dbInstance.prepare("DELETE FROM users WHERE id=:idval");
 
     const result = stmt.getAsObject({ ":idval": userId });
-
     // Check if rows were affected
     if (result) {
       await saveDatabase("database.sqlite");

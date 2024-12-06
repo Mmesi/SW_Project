@@ -17,20 +17,19 @@ dotenv.config();
 
 // Apply the rate limiting middleware to all requests.
 const loginLimiter = rateLimit({
-  windowMs: 2 * 60 * 1000, // 1 minute
-  limit: 5,
+  windowMs: 2 * 60 * 1000, // 2 minute
+  limit: 5, // Limit requests to 5 every 2 minutes
   message: { error: "Too many failed attempts, please try again later" },
   standardHeaders: "draft-7",
   legacyHeaders: false,
 });
 
 const app = express();
-const PORT = 3002;
+app.use("/auth/login", loginLimiter);
 
+const PORT = 3002;
 app.use(cors());
 app.use(express.json());
-
-app.use("/auth/login", loginLimiter);
 
 console.log("JWT Secret Key:", process.env.VITE_ACCESS_TOKEN_SECRET);
 const jwtSecretKey =
@@ -46,7 +45,7 @@ app.post("/auth/signup", async (req, res) => {
       error: `All required fields must be provided`,
     });
   }
-  console.log(fullName, email, password, avatar, role);
+  
 
   // Check if the user already exists
   const existingUser = await getUser(email);
@@ -76,25 +75,20 @@ app.post("/auth/login", async (req, res) => {
       error: `Email and password are required`,
     });
   }
-
   // Get user from the database by email
   const user = await getUser(email);
   if (!user) {
     return res.status(400).json({ error: "User not found" });
   }
-
   // Compare the hashed password with the input password
   const isPasswordValid = await bcrypt.compare(password, user.password);
-
   if (!isPasswordValid) {
     return res.status(400).json({ error: "Invalid credentials" });
   }
-
   // Sign a JWT token
   const token = jwt.sign({ id: user.id, email: user.email }, jwtSecretKey, {
     expiresIn: "1h",
   });
-
   // Send the token and user with the status updated to authenticated
   res.status(200).json({ token, user: { ...user, status: "authenticated" } });
 });
