@@ -19,7 +19,7 @@ const loadDatabase = async (filepath) => {
       return db;
     }
   } catch (error) {
-    console.error("Error loading database:", error.message);
+    console.error("Error loading database");
     throw error;
   }
 };
@@ -30,7 +30,7 @@ const saveDatabase = async (filepath) => {
     const buffer = Buffer.from(data);
     fs.writeFileSync(filepath, buffer);
   } catch (error) {
-    console.error("Error saving database:", error.message);
+    console.error("Error saving database");
     throw error;
   }
 };
@@ -49,7 +49,7 @@ const setupDatabase = () => {
       )
     `);
   } catch (error) {
-    console.error("Error setting up tables:", error.message);
+    console.error("Error setting up tables");
   }
 };
 
@@ -63,7 +63,7 @@ export const insertUser = async (fullName, email, password, avatar, role) => {
 
     await saveDatabase("database.sqlite");
   } catch (error) {
-    console.error("Error inserting user:", error.message);
+    console.error("Error inserting user");
   }
 };
 // Fetch all users from the database
@@ -93,7 +93,7 @@ export const getUsers = async () => {
     }
     return result;
   } catch (error) {
-    console.error("Error fetching users:", error.message);
+    console.error("Error fetching users");
     throw error;
   }
 };
@@ -112,7 +112,7 @@ export const deleteUserById = async (userId) => {
       return null;
     }
   } catch (error) {
-    console.error("Error deleting user:", error.message);
+    console.error("Error deleting user:");
     throw error;
   }
 };
@@ -133,7 +133,7 @@ export const getUserById = async (id) => {
       status: "authenticated",
     };
   } catch (error) {
-    console.error("Error fetching user by ID:", error.message);
+    console.error("Error fetching user by ID");
     throw error;
   }
 };
@@ -142,8 +142,14 @@ export const getUser = async (email) => {
     const stmt = await dbInstance.prepare(
       "SELECT * FROM users WHERE email=:emailval",
     );
+    stmt.bind({ ":emailval": email });
 
-    const result = await stmt.getAsObject({ ":emailval": email });
+    if (!stmt.step()) {
+      stmt.free();
+      return null;
+    }
+
+    const result = await stmt.getAsObject();
 
     stmt.free();
 
@@ -152,7 +158,7 @@ export const getUser = async (email) => {
       user_metadata: { fullName: result.full_name, avatar: result.avatar },
     };
   } catch (error) {
-    console.error("Error fetching user by email:", error.message);
+    console.error("Error fetching user by email");
     throw error;
   }
 };
@@ -171,7 +177,7 @@ export const updateUser = async (userId, data) => {
 
       await saveDatabase("database.sqlite");
     } catch (error) {
-      console.error("Error updating user:", error.message);
+      console.error("Error updating user");
       throw error;
     }
   }
@@ -187,7 +193,7 @@ export const updateUser = async (userId, data) => {
 
       await saveDatabase("database.sqlite");
     } catch (error) {
-      console.error("Error updating user:", error.message);
+      console.error("Error updating user");
       throw error;
     }
   }
@@ -217,15 +223,12 @@ export const initializeDatabase = async (filepath = "database.sqlite") => {
 
     console.log("Database initialized and ready for use.");
   } catch (error) {
-    console.error("Error initializing database:", error.message);
+    console.error("Error initializing database");
     throw error;
   }
 };
 
 // Automatically initialize the database
 initializeDatabase().catch((err) => {
-  console.error(
-    "An error occurred during database initialization:",
-    err.message,
-  );
+  console.error("An error occurred during database initialization");
 });

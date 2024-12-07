@@ -1,5 +1,3 @@
-// auth.js
-
 import { jwtDecode } from "jwt-decode";
 
 const API_URL = "http://localhost:3002";
@@ -14,6 +12,7 @@ export const signup = async (user) => {
       },
       body: JSON.stringify(user),
     });
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || "Signup failed");
