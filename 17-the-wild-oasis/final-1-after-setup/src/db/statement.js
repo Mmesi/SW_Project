@@ -1,21 +1,20 @@
-import fs from "fs"; // File system module
-import initSqlJs from "sql.js"; // SQL.js library
+import fs from "fs";
+import initSqlJs from "sql.js";
 
 let dbInstance;
-// Load the SQLite database from a file or create a new one if the file doesn't exist
+
 const loadDatabase = async (filepath) => {
   try {
-    // Load the SQL.js module
     const SQL = await initSqlJs({
       locateFile: (filename) => `../../node_modules/sql.js/dist/${filename}`,
     });
-    // Check if the file exists
+
     if (fs.existsSync(filepath)) {
-      const fileBuffer = fs.readFileSync(filepath); // Read file into a buffer
-      const db = new SQL.Database(fileBuffer); // Load database from buffer
+      const fileBuffer = fs.readFileSync(filepath);
+      const db = new SQL.Database(fileBuffer);
       return db;
     } else {
-      const db = new SQL.Database(); // Create a new in-memory database
+      const db = new SQL.Database();
       return db;
     }
   } catch (error) {
@@ -23,7 +22,7 @@ const loadDatabase = async (filepath) => {
     throw error;
   }
 };
-// Save the SQLite database to a file
+
 const saveDatabase = async (filepath) => {
   try {
     const data = dbInstance.export();

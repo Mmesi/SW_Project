@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 
 function LoginForm() {
   const [email, setEmail] = useState("admin@admin.com");
-  const [password, setPassword] = useState("admin321");
+  const [password, setPassword] = useState("admin123");
   const { login, isLoading } = useLogin();
 
   function handleSubmit(e) {
