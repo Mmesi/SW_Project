@@ -15,20 +15,21 @@ import {
 
 dotenv.config();
 // Apply the rate limiting middleware to all requests.
+
+const app = express();
+app.use(cors());
+
+const PORT = 3002;
+app.use(express.json());
+
 const loginLimiter = rateLimit({
   windowMs: 2 * 60 * 1000, // 2 minute
-  limit: 5, // Limit requests to 5 every 2 minutes
+  limit: 1, // Limit requests to 5 every 2 minutes
   message: { error: "Too many failed attempts, please try again later" },
   standardHeaders: "draft-7",
   legacyHeaders: false,
 });
-
-const app = express();
 app.use("/auth/login", loginLimiter);
-
-const PORT = 3002;
-app.use(cors());
-app.use(express.json());
 
 const jwtSecretKey =
   "f71969bdc197f1e7e8f07fe312b13d2bfd0c323b20ce0d761170013391d425cc1c8fd477bcd2a273e434f7844c93c534d0a9ebb2ff42123f76b0fcd2be8b081c";
@@ -52,7 +53,7 @@ app.post("/auth/signup", async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   try {
     // Insert the new user into the database
-    await insertUser(fullName, email, hashedPassword, avatar, role);
+    await insertUser(email, hashedPassword, fullName, avatar, role);
     res.status(201).json({ message: "User created successfully" });
   } catch (err) {
     res.status(500).json({ error: "Error creating user" });
@@ -69,6 +70,7 @@ app.post("/auth/login", async (req, res) => {
   }
   // Get user from the database by email
   const user = await getUser(email);
+
   if (!user) {
     return res.status(400).json({ error: "User not found" });
   }

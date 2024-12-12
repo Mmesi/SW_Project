@@ -36,6 +36,7 @@ export const login = async (email, password) => {
     });
 
     const data = await response.json();
+    console.log(data);
     if (response.ok) {
       localStorage.setItem("authToken", data.token);
 

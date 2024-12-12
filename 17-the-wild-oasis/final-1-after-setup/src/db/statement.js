@@ -1,5 +1,6 @@
 import fs from "fs";
 import initSqlJs from "sql.js";
+import bcrypt from "bcryptjs";
 
 let dbInstance;
 
@@ -53,7 +54,7 @@ const setupDatabase = () => {
 };
 
 // Insert a user into the database
-export const insertUser = async (fullName, email, password, avatar, role) => {
+export const insertUser = async (email, password, fullName, avatar, role) => {
   try {
     dbInstance.run(
       `INSERT INTO users (email, password, full_name, avatar, role) VALUES (?, ?, ?, ?, ?)`,
@@ -136,31 +137,6 @@ export const getUserById = async (id) => {
     throw error;
   }
 };
-export const getUser = async (email) => {
-  try {
-    const stmt = await dbInstance.prepare(
-      "SELECT * FROM users WHERE email=:emailval",
-    );
-    stmt.bind({ ":emailval": email });
-
-    if (!stmt.step()) {
-      stmt.free();
-      return null;
-    }
-
-    const result = await stmt.getAsObject();
-
-    stmt.free();
-
-    return {
-      ...result,
-      user_metadata: { fullName: result.full_name, avatar: result.avatar },
-    };
-  } catch (error) {
-    console.error("Error fetching user by email");
-    throw error;
-  }
-};
 
 // Update a user in the database
 export const updateUser = async (userId, data) => {
@@ -198,6 +174,33 @@ export const updateUser = async (userId, data) => {
   }
 };
 
+//SQL Injection proof
+export const getUser = async (email) => {
+  try {
+    const stmt = await dbInstance.prepare(
+      "SELECT * FROM users WHERE email=:emailval",
+    );
+    stmt.bind({ ":emailval": email });
+
+    if (!stmt.step()) {
+      stmt.free();
+      return null;
+    }
+
+    const result = await stmt.getAsObject();
+
+    stmt.free();
+
+    return {
+      ...result,
+      user_metadata: { fullName: result.full_name, avatar: result.avatar },
+    };
+  } catch (error) {
+    console.error("Error fetching user by email");
+    throw error;
+  }
+};
+
 // Main function to initialize the database
 export const initializeDatabase = async (filepath = "database.sqlite") => {
   try {
@@ -207,18 +210,20 @@ export const initializeDatabase = async (filepath = "database.sqlite") => {
     // Set up tables if they don't exist
     setupDatabase(dbInstance);
 
-    // Hash the password before saving to the database
-    // const hashedPassword = await bcrypt.hash("admin123", 10);
+    //Hash the password before saving to the database
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+    console.log(hashedPassword);
 
-    // // Insert a user into the database
-    // insertUser(
-    //   "admin@admin.com",
-    //   hashedPassword,
-    //   "John Doe",
-    //   "default-user.jpg",
-    //   "admin",
-    // );
-    // await saveDatabase(filepath);
+    // Insert a user into the database
+    insertUser(
+      "admin@admin.com",
+      hashedPassword,
+      "John Doe",
+      "default-user.jpg",
+      "admin",
+    );
+
+    await saveDatabase(filepath);
 
     console.log("Database initialized and ready for use.");
   } catch (error) {
